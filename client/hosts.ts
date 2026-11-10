@@ -114,6 +114,20 @@ export function lastAgentMessage(entries: readonly { item: TimelineItem }[]): st
   return null;
 }
 
+/** Paseo makes an agent's first title from the start of the prompt, cut at this many characters. */
+const CUT_TITLE_LENGTH = 60;
+
+/** The title to show. One Paseo cut mid-word ends at its last whole word, with an ellipsis. */
+export function displayTitle(title: string | null) {
+  const clean = title?.trim();
+  if (!clean) return "Untitled agent";
+  if (clean.length === CUT_TITLE_LENGTH)
+    return `${clean.replace(/\s+\S*$/, "").replace(/[\s.,;:-]+$/, "")}…`;
+  // The cut landed on a space, which was trimmed, so this already ends on a whole word.
+  if (clean.length === CUT_TITLE_LENGTH - 1) return `${clean}…`;
+  return clean;
+}
+
 /** "3m", "2h", "5d": how long ago, for a list row. */
 export function ago(iso: string, now: number) {
   const seconds = Math.max(0, (now - Date.parse(iso)) / 1000);

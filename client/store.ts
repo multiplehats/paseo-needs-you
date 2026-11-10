@@ -13,6 +13,7 @@ import { judgeRpc, statusRpc } from "../shared/rpc";
 import { excerpt, fingerprint, ruleVerdict, type Verdict } from "../shared/verdict";
 import {
   assess,
+  displayTitle,
   type HostAgentUpdate,
   type HostEntry,
   type HostLookup,
@@ -123,7 +124,7 @@ export function createStore({ rpc, lookup, now = Date.now }: StoreOptions) {
           key,
           serverId,
           agentId: agent.id,
-          title: agent.title || "Untitled agent",
+          title: displayTitle(agent.title),
           project: project?.projectName ?? null,
           hostLabel: host.label,
           at: agent.updatedAt,

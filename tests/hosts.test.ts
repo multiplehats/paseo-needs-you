@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { ago, assess, type HostAgent, lastAgentMessage } from "../client/hosts";
+import { ago, assess, displayTitle, type HostAgent, lastAgentMessage } from "../client/hosts";
 
 export const agent = (patch: Partial<HostAgent> = {}): HostAgent => ({
   id: "a1",
@@ -86,4 +86,36 @@ test("ago", () => {
   assert.equal(ago("2026-11-10T09:45:00.000Z", now), "15m");
   assert.equal(ago("2026-11-10T07:00:00.000Z", now), "3h");
   assert.equal(ago("2026-11-08T10:00:00.000Z", now), "2d");
+});
+
+test("a title Paseo cut mid-word ends at its last whole word, with an ellipsis", () => {
+  const cut = "For the shop we want to make quite a big change. What we wa";
+  assert.equal(cut.length, 59);
+  const midWord = `${cut}n`;
+  assert.equal(displayTitle(midWord), "For the shop we want to make quite a big change. What we…");
+  assert.equal(
+    displayTitle(`${"a".repeat(30)}, and ${"b".repeat(20)} c.d e`.slice(0, 60)).at(-1),
+    "…",
+  );
+});
+
+test("a cut that landed on a space keeps its last word", () => {
+  const title = `${"word ".repeat(11)}abcdefghij`.slice(0, 59).trim();
+  assert.equal(title.length, 59);
+  assert.equal(displayTitle(title), `${title}…`);
+});
+
+test("a cut with no spaces keeps what it has", () => {
+  assert.equal(displayTitle("x".repeat(60)), `${"x".repeat(60)}…`);
+});
+
+test("a title that ends on punctuation does not get punctuation before the ellipsis", () => {
+  const title = `${"a".repeat(45)} big change. W`.padEnd(60, "W");
+  assert.equal(displayTitle(title), `${"a".repeat(45)} big change…`);
+});
+
+test("ordinary titles are left alone, and a missing one has a name", () => {
+  assert.equal(displayTitle("Fix the login page"), "Fix the login page");
+  assert.equal(displayTitle("  "), "Untitled agent");
+  assert.equal(displayTitle(null), "Untitled agent");
 });

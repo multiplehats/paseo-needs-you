@@ -141,7 +141,7 @@ function Row(props: {
           style={{
             color: colors.foreground,
             fontSize: 14,
-            fontWeight: "500",
+            fontWeight: "600",
             lineHeight: TITLE_LINE,
             height: TITLE_LINE,
           }}
