@@ -25,9 +25,11 @@ const META_LINE = 16;
 
 export interface ScreenOptions {
   openSettings(): void;
+  /** Show an opened agent's project in the sidebar, where the platform allows it. */
+  reveal?(item: Item): void;
 }
 
-export function createScreen(store: Store, { openSettings }: ScreenOptions) {
+export function createScreen(store: Store, { openSettings, reveal }: ScreenOptions) {
   return function NeedsYouScreen({ theme, layout, navigation }: PluginScreenProps) {
     useSyncHosts(store);
     const { status, items, provider, problem } = useSnapshot(store);
@@ -69,7 +71,10 @@ export function createScreen(store: Store, { openSettings }: ScreenOptions) {
               showHost={manyHosts}
               onOpen={
                 navigation
-                  ? () => navigation.openAgent({ agentId: item.agentId, serverId: item.serverId })
+                  ? () => {
+                      navigation.openAgent({ agentId: item.agentId, serverId: item.serverId });
+                      reveal?.(item);
+                    }
                   : undefined
               }
               onDismiss={() => void store.dismiss(item)}

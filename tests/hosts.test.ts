@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { ago, assess, displayTitle, type HostAgent, lastAgentMessage } from "../client/hosts";
+import {
+  ago,
+  assess,
+  displayTitle,
+  type HostAgent,
+  lastAgentMessage,
+  sidebarKey,
+} from "../client/hosts";
 
 export const agent = (patch: Partial<HostAgent> = {}): HostAgent => ({
   id: "a1",
@@ -18,11 +25,18 @@ test("an idle top-level agent is read", () => {
   assert.deepEqual(assess(agent()), { kind: "read" });
 });
 
-test("running, closed and archived agents are skipped", () => {
+test("running and archived agents are skipped", () => {
   assert.equal(assess(agent({ status: "running" })).kind, "skip");
   assert.equal(assess(agent({ status: "initializing" })).kind, "skip");
-  assert.equal(assess(agent({ status: "closed" })).kind, "skip");
   assert.equal(assess(agent({ archivedAt: "2026-11-01T00:00:00.000Z" })).kind, "skip");
+  assert.equal(
+    assess(agent({ status: "closed", archivedAt: "2026-11-01T00:00:00.000Z" })).kind,
+    "skip",
+  );
+});
+
+test("a closed agent is still read, because a daemon restart closes them all", () => {
+  assert.deepEqual(assess(agent({ status: "closed" })), { kind: "read" });
 });
 
 test("an agent started by another agent is not read", () => {
@@ -131,4 +145,17 @@ test("an approval shows the command or file it is for, not just the tool's name"
   assert.equal(excerpt(ask({ command: "npm test" })), "Waiting for your approval: npm test");
   assert.equal(excerpt(ask({ file_path: "/a/b.ts" })), "Waiting for your approval: /a/b.ts");
   assert.equal(excerpt(ask({})), "Waiting for your approval: Bash");
+});
+
+test("the sidebar key is the project key, or a pair when a key is shared or missing", () => {
+  const projects = [
+    { projectId: "p1", projectKey: "remote:a" },
+    { projectId: "p2", projectKey: "remote:b" },
+    { projectId: "p3", projectKey: "remote:b" },
+    { projectId: "p4", projectKey: null },
+  ];
+  assert.equal(sidebarKey(projects, "s1", "p1"), "remote:a");
+  assert.equal(sidebarKey(projects, "s1", "p2"), '["s1","p2"]');
+  assert.equal(sidebarKey(projects, "s1", "p4"), '["s1","p4"]');
+  assert.equal(sidebarKey(projects, "s1", "gone"), null);
 });

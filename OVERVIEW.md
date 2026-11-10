@@ -2,7 +2,7 @@ Needs you adds a sidebar row showing how many agents are waiting on you, and a l
 
 ## What it lists
 
-Each entry shows the agent, what it wants and how long ago. Press one to open the agent.
+Each entry shows the agent, what it wants and how long ago. Press one to open the agent. On desktop and web its project also unfolds in the sidebar, and if you use Spaces the sidebar switches to that agent's Space.
 
 - **Approval:** the agent is blocked on a permission or question prompt.
 - **Question:** its last message asks you to answer or decide something.
@@ -30,4 +30,4 @@ The plugin reads the agent list and recent timeline of each connected host, usin
 
 With text rules, nothing leaves your hosts. With a provider on, each idle agent's last message is sent to that provider and on to TypeSafe. Message text is never written to the plugin log.
 
-Hosts that are offline are left out of the list until they reconnect.
+Hosts that are offline are left out of the list until they reconnect. Unfolding a project relies on how Paseo's sidebar is built, so a Paseo update can affect it. The list itself uses Paseo's plugin API.
