@@ -16,6 +16,13 @@ const TAGS: Record<ItemKind, string> = {
   failed: "Failed",
 };
 
+// Every row is the same height whatever it says, so the preview's space is reserved even when
+// the agent only wrote a few words.
+const TITLE_LINE = 20;
+const PREVIEW_LINE = 19;
+const PREVIEW_LINES = 2;
+const META_LINE = 16;
+
 export interface ScreenOptions {
   openSettings(): void;
 }
@@ -129,25 +136,40 @@ function Row(props: {
           backgroundColor: pressed ? colors.surface2 : "transparent",
         })}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Text
-            numberOfLines={1}
-            style={{ flexShrink: 1, color: colors.foreground, fontSize: 14, fontWeight: "500" }}
-          >
-            {item.title}
-          </Text>
-          <Text
-            numberOfLines={1}
-            style={{ flexShrink: 0, color: tagColor, fontSize: 11, fontWeight: "600" }}
-          >
-            {TAGS[item.kind]}
-          </Text>
-        </View>
-        <Text numberOfLines={3} style={{ color: colors.foreground, fontSize: 13, lineHeight: 19 }}>
+        <Text
+          numberOfLines={1}
+          style={{
+            color: colors.foreground,
+            fontSize: 14,
+            fontWeight: "500",
+            lineHeight: TITLE_LINE,
+            height: TITLE_LINE,
+          }}
+        >
+          {item.title}
+        </Text>
+        <Text
+          numberOfLines={PREVIEW_LINES}
+          style={{
+            color: colors.foreground,
+            fontSize: 13,
+            lineHeight: PREVIEW_LINE,
+            height: PREVIEW_LINE * PREVIEW_LINES,
+          }}
+        >
           {item.excerpt}
         </Text>
-        <Text numberOfLines={1} style={{ color: colors.foregroundMuted, fontSize: 12 }}>
-          {where}
+        <Text
+          numberOfLines={1}
+          style={{
+            color: colors.foregroundMuted,
+            fontSize: 12,
+            lineHeight: META_LINE,
+            height: META_LINE,
+          }}
+        >
+          <Text style={{ color: tagColor, fontWeight: "600" }}>{TAGS[item.kind]}</Text>
+          {` · ${where}`}
         </Text>
       </Pressable>
       <Pressable
