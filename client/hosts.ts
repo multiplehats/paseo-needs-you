@@ -7,6 +7,7 @@ export interface HostPermission {
   name: string;
   title?: string;
   description?: string;
+  input?: Readonly<Record<string, unknown>>;
 }
 
 export interface HostAgent {
@@ -73,8 +74,11 @@ export type Assessment = { kind: "skip" } | { kind: "read" } | ({ kind: "flag" }
 
 function permissionExcerpt(request: HostPermission | undefined) {
   if (!request) return "Waiting for your approval.";
-  const what = request.title || request.description || request.name;
-  return request.kind === "question" ? what : `Waiting for your approval: ${what}`;
+  if (request.kind === "question") return request.title || request.description || request.name;
+  // A tool's name says little: "Bash" only means something with the command it wants to run.
+  const target = request.input?.command ?? request.input?.file_path;
+  const what = typeof target === "string" && target ? target : request.title || request.description;
+  return `Waiting for your approval: ${what || request.name}`;
 }
 
 /** What is known from the agent's own state, before reading what it said. */

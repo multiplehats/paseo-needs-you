@@ -119,3 +119,16 @@ test("ordinary titles are left alone, and a missing one has a name", () => {
   assert.equal(displayTitle("  "), "Untitled agent");
   assert.equal(displayTitle(null), "Untitled agent");
 });
+
+test("an approval shows the command or file it is for, not just the tool's name", () => {
+  const ask = (input: Record<string, unknown>) =>
+    assess(
+      agent({
+        pendingPermissions: [{ id: "r", kind: "tool", name: "Bash", title: "Bash", input }],
+      }),
+    );
+  const excerpt = (result: ReturnType<typeof ask>) => result.kind === "flag" && result.flag.excerpt;
+  assert.equal(excerpt(ask({ command: "npm test" })), "Waiting for your approval: npm test");
+  assert.equal(excerpt(ask({ file_path: "/a/b.ts" })), "Waiting for your approval: /a/b.ts");
+  assert.equal(excerpt(ask({})), "Waiting for your approval: Bash");
+});

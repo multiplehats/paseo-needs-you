@@ -3,7 +3,11 @@
   "name": "Needs you",
   "description": "A sidebar list of every agent waiting on you: open questions, permission prompts and failures, across all your hosts.",
   "icon": "assets/icon.png",
-  "media": ["assets/list.png"],
+  "media": [
+    "assets/list.png",
+    "assets/phone.png",
+    "assets/settings.png"
+  ],
   "requirements": {
     "paseo": ">=0.15.0"
   }
