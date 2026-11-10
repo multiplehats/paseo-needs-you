@@ -1,6 +1,5 @@
 // What this plugin needs from a connected host's Paseo API, and how to read it. The app hands
 // out one API per host through getPaseoClient(serverId); tests pass small fakes of the same shape.
-import type { Exchange } from "../shared/jev";
 
 export interface HostPermission {
   id: string;
@@ -105,15 +104,14 @@ export function assess(agent: HostAgent): Assessment {
   return agent.status === "idle" ? { kind: "read" } : { kind: "skip" };
 }
 
-/** The agent's last message and what the person said before it, unless the person spoke last. */
-export function lastExchange(entries: readonly { item: TimelineItem }[]): Exchange | null {
-  let text: string | null = null;
+/** The agent's last message, unless the person has spoken since. */
+export function lastAgentMessage(entries: readonly { item: TimelineItem }[]): string | null {
   for (let i = entries.length - 1; i >= 0; i--) {
-    const { type, text: said } = entries[i].item;
-    if (type === "user_message") return text === null ? null : { text, request: said ?? null };
-    if (type === "assistant_message" && text === null && said?.trim()) text = said;
+    const { type, text } = entries[i].item;
+    if (type === "user_message") return null;
+    if (type === "assistant_message" && text?.trim()) return text;
   }
-  return text === null ? null : { text, request: null };
+  return null;
 }
 
 /** "3m", "2h", "5d": how long ago, for a list row. */

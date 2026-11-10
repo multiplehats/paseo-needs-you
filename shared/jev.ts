@@ -65,23 +65,11 @@ export const QUESTIONS = {
 
 /** Jev's context is about 32k tokens per question, and the end of a message is what matters. */
 const MAX_MESSAGE_CHARS = 20_000;
-const MAX_REQUEST_CHARS = 2_000;
 
-export interface Exchange {
-  /** The agent's last message. */
-  text: string;
-  /** What the person last said before it, when the timeline still has that. */
-  request: string | null;
-}
-
-export function buildRequest(model: string, { text, request }: Exchange) {
+export function buildRequest(model: string, message: string) {
   return {
     model,
-    state: {
-      agent_message: text.slice(-MAX_MESSAGE_CHARS),
-      // Left out when unknown: the model can read an empty field as a signal.
-      ...(request ? { person_request: request.slice(0, MAX_REQUEST_CHARS) } : {}),
-    },
+    state: { agent_message: message.slice(-MAX_MESSAGE_CHARS) },
     questions: QUESTIONS,
   };
 }
@@ -122,7 +110,5 @@ export function decide({ asks, acts, offers }: Judgments): Verdict {
 }
 
 /** A message with a known answer, for the Test button in Settings. */
-export const TEST_EXCHANGE: Exchange = {
-  text: "The migration is ready. Should I run it on production now, or wait until tonight?",
-  request: null,
-};
+export const TEST_MESSAGE =
+  "The migration is ready. Should I run it on production now, or wait until tonight?";

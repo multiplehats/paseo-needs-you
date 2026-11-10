@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { createDetection } from "../server/detection";
 import { defaultKeyPath, fileKeyStore, type KeyStore, type SavedDetection } from "../server/keys";
 
-const exchange = { text: "Should I ship it?", request: null };
+const exchange = { text: "Should I ship it?" };
 const SECRET = "sk-very-secret";
 
 function memoryKeys(initial: SavedDetection = { provider: null, keys: {} }): KeyStore {
@@ -139,7 +139,7 @@ test("the log has numbers and never the message or key", async () => {
   const lines: string[] = [];
   const { fetch } = fakeFetch(answered(0.9));
   const detection = createDetection({ keys: openrouter(), fetch, log: (l) => lines.push(l) });
-  await detection.judge({ text: "Private customer detail?", request: "Secret request" });
+  await detection.judge({ text: "Private customer detail?" });
   assert.equal(lines.length, 1);
   assert.match(lines[0], /question/);
   assert.ok(!/Private|Secret|sk-very/.test(lines[0]));

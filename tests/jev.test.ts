@@ -17,17 +17,15 @@ test("truth table: an unsettled answer is listed rather than missed", () => {
 });
 
 test("the request keeps the end of a long message and every question", () => {
-  const body = buildRequest("m", { text: `${"a".repeat(30_000)}END`, request: null });
+  const body = buildRequest("m", `${"a".repeat(30_000)}END`);
   assert.equal(body.model, "m");
   assert.equal(body.state.agent_message.length, 20_000);
   assert.ok(body.state.agent_message.endsWith("END"));
   assert.deepEqual(Object.keys(body.questions), Object.keys(QUESTIONS));
 });
 
-test("an unknown request is left out of the state, not sent empty", () => {
-  assert.ok(!("person_request" in buildRequest("m", { text: "x", request: null }).state));
-  const state = buildRequest("m", { text: "x", request: "do it" }).state as Record<string, string>;
-  assert.equal(state.person_request, "do it");
+test("only the agent's message is sent", () => {
+  assert.deepEqual(Object.keys(buildRequest("m", "x").state), ["agent_message"]);
 });
 
 test("answers are read by name", () => {

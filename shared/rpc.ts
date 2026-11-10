@@ -7,7 +7,7 @@ const VerdictSchema = z.enum(["question", "action", "offer", "none"]);
 
 export const judgeRpc = defineRpc({
   name: "detection.judge",
-  input: z.object({ text: z.string().max(500_000), request: z.string().max(500_000).nullable() }),
+  input: z.object({ text: z.string().max(500_000) }),
   output: z.discriminatedUnion("status", [
     z.object({ status: z.literal("judged"), verdict: VerdictSchema, provider: ProviderSchema }),
     // No provider set up: the client uses the text rules, and that is not a problem.

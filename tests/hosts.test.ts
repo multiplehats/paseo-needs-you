@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { ago, assess, type HostAgent, lastExchange } from "../client/hosts";
+import { ago, assess, type HostAgent, lastAgentMessage } from "../client/hosts";
 
 export const agent = (patch: Partial<HostAgent> = {}): HostAgent => ({
   id: "a1",
@@ -52,7 +52,7 @@ test("a failed agent is flagged with its error", () => {
   assert.equal(result.kind === "flag" && result.flag.excerpt, "Out of credit");
 });
 
-test("the last exchange is the final agent message and the person's before it", () => {
+test("the last message is the agent's final one", () => {
   const entries = [
     say("user_message", "first"),
     say("assistant_message", "older"),
@@ -62,22 +62,22 @@ test("the last exchange is the final agent message and the person's before it", 
     say("assistant_message", "Should I ship it?"),
     say("tool_call"),
   ];
-  assert.deepEqual(lastExchange(entries), { text: "Should I ship it?", request: "second" });
+  assert.equal(lastAgentMessage(entries), "Should I ship it?");
 });
 
 test("nothing is open once the person has spoken last", () => {
   assert.equal(
-    lastExchange([say("assistant_message", "Ship it?"), say("user_message", "Yes")]),
+    lastAgentMessage([say("assistant_message", "Ship it?"), say("user_message", "Yes")]),
     null,
   );
 });
 
 test("a tail with no agent text has nothing to read", () => {
-  assert.equal(lastExchange([say("tool_call"), say("assistant_message", "  ")]), null);
+  assert.equal(lastAgentMessage([say("tool_call"), say("assistant_message", "  ")]), null);
 });
 
 test("a tail that has lost the person's message still has the agent's", () => {
-  assert.deepEqual(lastExchange([say("assistant_message", "Ok?")]), { text: "Ok?", request: null });
+  assert.equal(lastAgentMessage([say("assistant_message", "Ok?")]), "Ok?");
 });
 
 test("ago", () => {

@@ -2,11 +2,10 @@ import { createHash } from "node:crypto";
 import {
   buildRequest,
   decide,
-  type Exchange,
   type Provider,
   PROVIDER_INFO,
   readAnswers,
-  TEST_EXCHANGE,
+  TEST_MESSAGE,
 } from "../shared/jev";
 import type { DetectionStatus } from "../shared/rpc";
 import type { Verdict } from "../shared/verdict";
@@ -59,12 +58,12 @@ export function createDetection({
     return key ? { provider: saved.provider, key } : null;
   }
 
-  async function ask({ provider, key }: Active, exchange: Exchange): Promise<Verdict> {
+  async function ask({ provider, key }: Active, text: string): Promise<Verdict> {
     const info = PROVIDER_INFO[provider];
     const response = await request(info.url, {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify(buildRequest(info.model, exchange)),
+      body: JSON.stringify(buildRequest(info.model, text)),
       signal: AbortSignal.timeout(timeoutMs),
     });
     if (!response.ok) throw new Error(describeFailure(provider, response.status));
@@ -78,13 +77,13 @@ export function createDetection({
     return verdict;
   }
 
-  function cached(config: Active, exchange: Exchange) {
+  function cached(config: Active, text: string) {
     const id = createHash("sha256")
-      .update(JSON.stringify([config.provider, exchange.text, exchange.request]))
+      .update(JSON.stringify([config.provider, text]))
       .digest("hex");
     let answer = cache.get(id);
     if (!answer) {
-      answer = ask(config, exchange);
+      answer = ask(config, text);
       cache.set(id, answer);
       // A failure must be retried later, not remembered.
       answer.catch(() => cache.delete(id));
@@ -103,7 +102,7 @@ export function createDetection({
 
   return {
     status,
-    async judge(exchange: Exchange) {
+    async judge({ text }: { text: string }) {
       const config = await active();
       if (!config) {
         if (!saidOff) log("no model set up: using the text rules");
@@ -112,7 +111,7 @@ export function createDetection({
       }
       saidOff = false;
       try {
-        const verdict = await cached(config, exchange);
+        const verdict = await cached(config, text);
         return { status: "judged" as const, verdict, provider: config.provider };
       } catch (error) {
         log(`judging failed: ${problem(error)}`);
@@ -134,7 +133,7 @@ export function createDetection({
       const config = await active();
       if (!config) return { ok: false as const, error: "Choose a provider and add its key first." };
       try {
-        return { ok: true as const, verdict: await ask(config, TEST_EXCHANGE) };
+        return { ok: true as const, verdict: await ask(config, TEST_MESSAGE) };
       } catch (error) {
         return { ok: false as const, error: problem(error) };
       }

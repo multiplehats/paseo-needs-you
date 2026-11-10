@@ -26,8 +26,8 @@ Requires Paseo 0.15 or later.
 
 ## Data and limits
 
-The plugin reads the agent list and recent timeline of each connected host, using the app's own connection. Dismissals are stored in this host's plugin settings. A saved key is stored in a private file on this host and is never sent back to any app.
+The plugin reads the agent list and recent timeline of each connected host, using the app's own connection. Dismissals are stored in this host's plugin settings. A saved key is stored in a private file on this host and is never sent back to any app. If none is saved, the plugin reads the provider's usual variable from the daemon's environment: OPENROUTER_API_KEY, AI_GATEWAY_API_KEY or TYPESAFE_API_KEY.
 
-With text rules, nothing leaves your hosts. With a provider on, each idle agent's last message and your request before it are sent to that provider and on to TypeSafe. Message text is never written to the plugin log.
+With text rules, nothing leaves your hosts. With a provider on, each idle agent's last message is sent to that provider and on to TypeSafe. Message text is never written to the plugin log.
 
 Hosts that are offline are left out of the list until they reconnect.

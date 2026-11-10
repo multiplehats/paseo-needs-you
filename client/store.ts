@@ -8,7 +8,7 @@ import {
   isDismissed,
   mergeDismissals,
 } from "../shared/dismissals";
-import type { Exchange, Provider } from "../shared/jev";
+import type { Provider } from "../shared/jev";
 import { judgeRpc, statusRpc } from "../shared/rpc";
 import { excerpt, fingerprint, ruleVerdict, type Verdict } from "../shared/verdict";
 import {
@@ -16,7 +16,7 @@ import {
   type HostAgentUpdate,
   type HostEntry,
   type HostLookup,
-  lastExchange,
+  lastAgentMessage,
   type ListOptions,
 } from "./hosts";
 
@@ -150,10 +150,10 @@ export function createStore({ rpc, lookup, now = Date.now }: StoreOptions) {
   }
 
   /** Ask the host's model, or fall back to the rules. `settled` says whether to keep the answer. */
-  async function judge(exchange: Exchange): Promise<{ verdict: Verdict; settled: boolean }> {
-    const rules = ruleVerdict(exchange.text);
+  async function judge(text: string): Promise<{ verdict: Verdict; settled: boolean }> {
+    const rules = ruleVerdict(text);
     try {
-      const result = await rpc(judgeRpc, exchange);
+      const result = await rpc(judgeRpc, { text });
       if (result.status === "judged") {
         provider = result.provider;
         problem = null;
@@ -177,20 +177,20 @@ export function createStore({ rpc, lookup, now = Date.now }: StoreOptions) {
       const page = await lookup(serverId)
         .agents.ref(entry.agent.id)
         .timeline.refetch({ direction: "tail", limit: TAIL_ITEMS, projection: "projected" });
-      const exchange = lastExchange(page.entries);
+      const message = lastAgentMessage(page.entries);
       let found: Found = null;
       let retryAt: number | null = null;
-      if (exchange) {
-        const print = fingerprint(exchange.text);
+      if (message) {
+        const print = fingerprint(message);
         const memo = `${key}:${print}`;
         let verdict = judged.get(memo);
         if (verdict === undefined) {
-          const answer = await judge(exchange);
+          const answer = await judge(message);
           verdict = answer.verdict;
           if (answer.settled) judged.set(memo, verdict);
           else retryAt = now() + RETRY_MS;
         }
-        if (verdict !== "none") found = { kind: verdict, excerpt: excerpt(exchange.text), print };
+        if (verdict !== "none") found = { kind: verdict, excerpt: excerpt(message), print };
       }
       // The agent moved on while this was being read: what it said no longer applies.
       if (currentStamp(serverId, entry.agent.id) === stamp)

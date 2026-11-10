@@ -144,9 +144,9 @@ export function createSettingsScreen(store: Store, rpc: PluginClientContext["rpc
           ) : null}
         </SettingsSection>
         <Text style={{ color: colors.foregroundMuted, fontSize: 13, lineHeight: 19 }}>
-          With a provider on, each agent's last message and your request before it are sent to that
-          provider, and on to TypeSafe, to judge whether the agent is waiting on you. With text
-          rules, nothing leaves your hosts.
+          With a provider on, each agent's last message is sent to that provider, and on to
+          TypeSafe, to judge whether the agent is waiting on you. With text rules, nothing leaves
+          your hosts.
         </Text>
       </ScrollView>
     );

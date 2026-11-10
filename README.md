@@ -60,8 +60,8 @@ Jev costs about $0.042 per million input tokens, so a long message costs around 
 Each message is judged once. If a call fails, the rules take over, the list says why, and it tries
 again five minutes later.
 
-**Privacy.** With a provider on, each agent's last message and your request before it go to that
-provider and on to TypeSafe. With text rules, nothing leaves your hosts. Message text is never
+**Privacy.** With a provider on, each idle agent's last message goes to that provider and on
+to TypeSafe. With text rules, nothing leaves your hosts. Message text is never
 written to the plugin log.
 
 A saved key is stored in `~/.paseo/plugin-secrets/needs-you.json`, readable only by you, and no
