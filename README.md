@@ -16,7 +16,11 @@ that finished its turn and asked you something in plain text.
 | Offer     | Its last message offers more work you could take up.      |
 | Failed    | The agent stopped with an error.                          |
 
-Press an entry to open the agent. An entry stays until you reply or press Dismiss. A dismissed
+Press an entry to open the agent. On desktop and web its project also unfolds in the sidebar, and
+with [Spaces](https://github.com/multiplehats/paseo-spaces) installed the sidebar switches to the
+agent's Space. Nothing depends on Spaces being there.
+
+An entry stays until you reply or press Dismiss, including across a daemon restart. A dismissed
 agent comes back when it says something new, and dismissing on one device clears it on the others.
 
 Agents started by another agent are left out, because their questions go to that agent. The
@@ -77,6 +81,10 @@ paseo plugin reload needs-you       # after a change
 ```
 
 Every word sent to the model is in `shared/jev.ts`, and the text rules are in `shared/verdict.ts`.
+
+Unfolding presses the project's own sidebar row, found by its test ID, because Paseo has no API
+for it. The row carries `data-paseo-unfolding` meanwhile, so another plugin doing the same doesn't
+press it closed again.
 
 ## License
 

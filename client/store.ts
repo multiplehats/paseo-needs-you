@@ -19,6 +19,7 @@ import {
   type HostLookup,
   lastAgentMessage,
   type ListOptions,
+  sidebarKey,
 } from "./hosts";
 
 export type ItemKind = "permission" | "question" | "action" | "offer" | "failed";
@@ -28,6 +29,8 @@ export interface Item {
   key: string;
   serverId: string;
   agentId: string;
+  workspaceId: string | null;
+  projectId: string | null;
   kind: ItemKind;
   title: string;
   project: string | null;
@@ -124,6 +127,8 @@ export function createStore({ rpc, lookup, now = Date.now }: StoreOptions) {
           key,
           serverId,
           agentId: agent.id,
+          workspaceId: agent.workspaceId ?? null,
+          projectId: project?.projectKey ?? null,
           title: displayTitle(agent.title),
           project: project?.projectName ?? null,
           hostLabel: host.label,
@@ -384,6 +389,16 @@ export function createStore({ rpc, lookup, now = Date.now }: StoreOptions) {
       });
     },
     refresh,
+    /** The sidebar's key for an item's project, or null when its host cannot say. */
+    async sidebarKeyFor({ serverId, projectId }: Pick<Item, "serverId" | "projectId">) {
+      if (!projectId) return null;
+      try {
+        const { projects } = await lookup(serverId).projects.list();
+        return sidebarKey(projects, serverId, projectId);
+      } catch {
+        return null;
+      }
+    },
     /** The model settings changed here, so judge everything again now. */
     async detectionChanged() {
       if (!(await loadStatus())) rejudge();

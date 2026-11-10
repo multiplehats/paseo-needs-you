@@ -19,11 +19,14 @@ export interface HostAgent {
   archivedAt?: string | null;
   attentionReason?: string | null;
   lastError?: string;
+  workspaceId?: string;
   pendingPermissions: readonly HostPermission[];
 }
 
 export interface HostPlacement {
   projectName: string;
+  /** Named a key by the agent list, but it holds the project's id. See sidebarKey. */
+  projectKey?: string;
 }
 
 export interface HostEntry {
@@ -49,7 +52,13 @@ export interface ListOptions {
   page: { limit: number };
 }
 
+export interface HostProject {
+  projectId: string;
+  projectKey?: string | null;
+}
+
 export interface HostApi {
+  projects: { list(): Promise<{ projects: readonly HostProject[] }> };
   agents: {
     list(options: ListOptions): Promise<{ entries: readonly HostEntry[] }>;
     subscribe(handler: (update: HostAgentUpdate) => void): () => void;
@@ -83,7 +92,7 @@ function permissionExcerpt(request: HostPermission | undefined) {
 
 /** What is known from the agent's own state, before reading what it said. */
 export function assess(agent: HostAgent): Assessment {
-  if (agent.archivedAt || agent.status === "closed") return { kind: "skip" };
+  if (agent.archivedAt) return { kind: "skip" };
   const request = agent.pendingPermissions[0];
   // A blocked agent is blocked whoever started it, so this comes before the parent check.
   if (request || agent.attentionReason === "permission")
@@ -105,7 +114,8 @@ export function assess(agent: HostAgent): Assessment {
         print: `failed-${agent.lastError ?? agent.updatedAt}`,
       },
     };
-  return agent.status === "idle" ? { kind: "read" } : { kind: "skip" };
+  // After a daemon restart agents come back closed. A question asked before it is still open.
+  return agent.status === "idle" || agent.status === "closed" ? { kind: "read" } : { kind: "skip" };
 }
 
 /** The agent's last message, unless the person has spoken since. */
@@ -130,6 +140,23 @@ export function displayTitle(title: string | null) {
   // The cut landed on a space, which was trimmed, so this already ends on a whole word.
   if (clean.length === CUT_TITLE_LENGTH - 1) return `${clean}…`;
   return clean;
+}
+
+/**
+ * The sidebar's key for a project: its project key when no other project on the host shares it,
+ * otherwise a [serverId, projectId] pair. Null for a project the host does not list.
+ */
+export function sidebarKey(
+  projects: readonly HostProject[],
+  serverId: string,
+  projectId: string,
+): string | null {
+  const project = projects.find((candidate) => candidate.projectId === projectId);
+  if (!project) return null;
+  const { projectKey } = project;
+  const unique =
+    projectKey && projects.filter((other) => other.projectKey === projectKey).length === 1;
+  return unique ? projectKey : JSON.stringify([serverId, projectId]);
 }
 
 /** "3m", "2h", "5d": how long ago, for a list row. */

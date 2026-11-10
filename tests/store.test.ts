@@ -45,6 +45,12 @@ function fakeHost(entries: HostEntry[], timelines: Record<string, TimelineItem[]
     },
   };
   const api: HostApi = {
+    projects: {
+      list: async () => {
+        if (state.offline) throw new Error("offline");
+        return { projects: [{ projectId: "prj_1", projectKey: "remote:github.com/a/shop" }] };
+      },
+    },
     agents: {
       list: async () => {
         if (state.offline) throw new Error("offline");
@@ -368,4 +374,15 @@ test("it stays loading until the first look at every agent is done", async () =>
   await store.setHosts(ONLINE);
   await settle();
   assert.equal(store.getSnapshot().status, "ready");
+});
+
+test("an item's sidebar key comes from the project list", async () => {
+  const fake = fakeHost([agent("a")], { a: asked("Ship it?") });
+  const { store } = await started(fake);
+  const item = { serverId: "s1", projectId: "prj_1" };
+  assert.equal(await store.sidebarKeyFor(item), "remote:github.com/a/shop");
+  assert.equal(await store.sidebarKeyFor({ ...item, projectId: null }), null);
+  assert.equal(await store.sidebarKeyFor({ ...item, projectId: "prj_gone" }), null);
+  fake.state.offline = true;
+  assert.equal(await store.sidebarKeyFor(item), null);
 });
